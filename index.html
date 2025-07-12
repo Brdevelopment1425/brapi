@@ -1,22 +1,223 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-  <meta charset="UTF-8" />
-  <title>API Merkezi</title>
-  <link rel="stylesheet" href="styles.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API Merkezi</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+  body {
+    margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f9fafb;
+  }
+
+  /* Header */
+  header {
+    background: #1e293b;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 1rem;
+    height: 60px;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+    position: relative;
+    z-index: 100;
+  }
+
+  /* Logo */
+  .logo {
+    font-weight: 700;
+    font-size: 1.4rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .logo i {
+    color: #4f46e5;
+  }
+
+  /* Desktop menu */
+  nav.desktop-menu {
+    display: flex;
+    gap: 1.2rem;
+    align-items: center;
+  }
+  nav.desktop-menu a, nav.desktop-menu button {
+    color: white;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+  nav.desktop-menu a:hover, nav.desktop-menu button:hover {
+    color: #a5b4fc;
+  }
+
+  #profile-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+  }
+
+  #login-btn {
+    background: #4f46e5;
+    border: none;
+    color: white;
+    padding: 0.4rem 1rem;
+    font-weight: 600;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  #login-btn:hover {
+    background: #4338ca;
+  }
+
+  /* Hamburger - mobile */
+  .hamburger {
+    display: none;
+    font-size: 1.5rem;
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+  }
+
+  /* Sidebar mobile */
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: -260px;
+    width: 260px;
+    height: 100%;
+    background-color: #0f172a;
+    color: white;
+    transition: left 0.4s ease;
+    padding: 2rem 1rem;
+    z-index: 1000;
+    box-shadow: 2px 0 15px rgba(0,0,0,0.6);
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar.show {
+    left: 0;
+  }
+  .sidebar a, .sidebar button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    background: none;
+    border: none;
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    transition: background 0.3s;
+    width: 100%;
+    cursor: pointer;
+  }
+  .sidebar a:hover, .sidebar button:hover {
+    background: rgba(255,255,255,0.1);
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav.desktop-menu {
+      display: none;
+    }
+    .hamburger {
+      display: block;
+    }
+  }
+</style>
 </head>
 <body>
-  <header>
-    <h1>API Merkezi</h1>
-    <div id="user-profile">
-      <button onclick="window.location.href='/login.html'">Giriş Yap</button>
-    </div>
-  </header>
 
-  <main id="api-container">
-    <p>Yükleniyor...</p>
-  </main>
+<header>
+  <button class="hamburger" id="hamburgerBtn" aria-label="Menüyü aç/kapat">
+    <i class="fas fa-bars"></i>
+  </button>
 
-  <script src="main.js"></script>
+  <div class="logo"><i class="fas fa-key"></i> API Merkezi</div>
+
+  <nav class="desktop-menu" id="desktopMenu">
+    <a href="/apikeys"><i class="fas fa-plus-circle"></i> API Key Oluştur</a>
+    <a href="/mykeys"><i class="fas fa-list"></i> Keylerim</a>
+    <a href="/"><i class="fas fa-database"></i> API Sayfası</a>
+    <button id="logoutBtnDesktop" style="display:none"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+  </nav>
+
+  <button id="login-btn">Giriş Yap</button>
+  <img src="/user.png" alt="Profil" id="profile-img" style="display:none" />
+</header>
+
+<nav class="sidebar" id="sidebarMenu">
+  <a href="/apikeys"><i class="fas fa-plus-circle"></i> API Key Oluştur</a>
+  <a href="/mykeys"><i class="fas fa-list"></i> Keylerim</a>
+  <a href="/"><i class="fas fa-database"></i> API Sayfası</a>
+  <button id="logoutBtnMobile"><i class="fas fa-sign-out-alt"></i> Çıkış Yap</button>
+</nav>
+
+<script>
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const sidebarMenu = document.getElementById('sidebarMenu');
+  const logoutBtnDesktop = document.getElementById('logoutBtnDesktop');
+  const logoutBtnMobile = document.getElementById('logoutBtnMobile');
+  const loginBtn = document.getElementById('login-btn');
+  const profileImg = document.getElementById('profile-img');
+
+  // Simüle giriş durumu
+  let loggedIn = false;
+
+  function updateUI() {
+    if (loggedIn) {
+      loginBtn.style.display = 'none';
+      profileImg.style.display = 'block';
+      logoutBtnDesktop.style.display = 'inline-flex';
+    } else {
+      loginBtn.style.display = 'inline-block';
+      profileImg.style.display = 'none';
+      logoutBtnDesktop.style.display = 'none';
+      sidebarMenu.classList.remove('show');
+    }
+  }
+
+  hamburgerBtn.addEventListener('click', () => {
+    sidebarMenu.classList.toggle('show');
+  });
+
+  logoutBtnDesktop.addEventListener('click', () => {
+    alert('Çıkış yapıldı (örnek)');
+    loggedIn = false;
+    updateUI();
+  });
+
+  logoutBtnMobile.addEventListener('click', () => {
+    alert('Çıkış yapıldı (örnek)');
+    loggedIn = false;
+    updateUI();
+    sidebarMenu.classList.remove('show');
+  });
+
+  loginBtn.addEventListener('click', () => {
+    window.location.href = '/login.html';
+  });
+
+  profileImg.addEventListener('click', () => {
+    alert('Profil tıklandı (örnek)');
+  });
+
+  updateUI();
+</script>
+
 </body>
 </html>
