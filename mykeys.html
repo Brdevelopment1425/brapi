@@ -1,0 +1,69 @@
+<!-- mykeys.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Keylerim - API Merkezi</title>
+<link rel="stylesheet" href="styles.css" />
+<script>
+  async function loadKeys() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Giriş yapmalısınız');
+      window.location.href = '/login.html';
+      return;
+    }
+    try {
+      const res = await fetch('/api/mykeys', {
+        headers: { 'Authorization': token }
+      });
+      if (!res.ok) throw new Error('Yetkisiz');
+      const data = await res.json();
+      const container = document.getElementById('keysContainer');
+      container.innerHTML = '';
+      if (data.keys.length === 0) {
+        container.textContent = 'Henüz API key oluşturmadınız.';
+        return;
+      }
+      data.keys.forEach(k => {
+        const div = document.createElement('div');
+        div.className = 'key-card';
+        div.textContent = k;
+        container.appendChild(div);
+      });
+    } catch (e) {
+      alert('Hata: ' + e.message);
+    }
+  }
+  window.onload = loadKeys;
+</script>
+</head>
+<body>
+<header>
+  <div class="logo">🔑 API Merkezi</div>
+  <nav>
+    <a href="/apikeys">API Key Oluştur</a>
+    <a href="/">API Sayfası</a>
+    <a href="/login.html" id="logoutLink">Çıkış Yap</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h2>API Keyleriniz</h2>
+  <div id="keysContainer">Yükleniyor...</div>
+</main>
+
+<script>
+  // Basit çıkış fonksiyonu
+  document.getElementById('logoutLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.removeItem('token');
+    localStorage.removeItem('email');
+    alert('Çıkış yapıldı');
+    window.location.href = '/login.html';
+  });
+</script>
+</body>
+</html>
+
