@@ -1,0 +1,58 @@
+<!-- apikeys.html -->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>API Key Oluştur - API Merkezi</title>
+<link rel="stylesheet" href="styles.css" />
+<script>
+  async function createKey() {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Giriş yapmalısınız');
+      window.location.href = '/login.html';
+      return;
+    }
+    try {
+      const res = await fetch('/api/create-key', {
+        method: 'POST',
+        headers: { 'Authorization': token }
+      });
+      if (!res.ok) throw new Error('Yetkisiz');
+      const data = await res.json();
+      alert('Yeni API key oluşturuldu:\n' + data.key);
+    } catch (e) {
+      alert('Hata: ' + e.message);
+    }
+  }
+</script>
+</head>
+<body>
+<header>
+  <div class="logo">🔑 API Merkezi</div>
+  <nav>
+    <a href="/mykeys">Keylerim</a>
+    <a href="/">API Sayfası</a>
+    <a href="/login.html" id="logoutLink">Çıkış Yap</a>
+  </nav>
+</header>
+
+<main class="container">
+  <h2>API Key Oluştur</h2>
+  <button onclick="createKey()" class="btn">Yeni API Key Oluştur</button>
+</main>
+
+<script>
+  // Basit çıkış fonksiyonu
+  document.getElementById('logoutLink').addEventListener('click', (e) => {
+    e.preventDefault();
+    localStorage.removeItem('token');
+    localStorage.removeItem('email');
+    alert('Çıkış yapıldı');
+    window.location.href = '/login.html';
+  });
+</script>
+</body>
+</html>
+
